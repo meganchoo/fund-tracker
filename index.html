@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鍩洪噾鏀剁泭杩借釜鍣?/title>
+    <title>基金收益追踪器</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -666,46 +666,46 @@
 
     <div class="container">
         <header class="header">
-            <h1>馃搱 鍩洪噾鏀剁泭杩借釜</h1>
-            <p>瀹炴椂杩借釜浣犵殑鍩洪噾鏀剁泭鎯呭喌</p>
+            <h1>📈 基金收益追踪</h1>
+            <p>实时追踪你的基金收益情况</p>
         </header>
 
         <!-- Summary Cards -->
         <section class="summary-section" id="summarySection">
             <div class="summary-card total">
-                <div class="summary-label">鎬绘敹鐩?/div>
-                <div class="summary-value" id="totalProfit">楼0.00</div>
-                <div class="summary-sub" id="totalProfitRate">鏀剁泭鐜?0.00%</div>
+                <div class="summary-label">总收益</div>
+                <div class="summary-value" id="totalProfit">¥0.00</div>
+                <div class="summary-sub" id="totalProfitRate">收益率 0.00%</div>
             </div>
             <div class="summary-card">
-                <div class="summary-label">鎬诲競鍊?/div>
-                <div class="summary-value" id="totalValue">楼0.00</div>
-                <div class="summary-sub" id="totalCost">鎴愭湰 楼0.00</div>
+                <div class="summary-label">总市值</div>
+                <div class="summary-value" id="totalValue">¥0.00</div>
+                <div class="summary-sub" id="totalCost">成本 ¥0.00</div>
             </div>
             <div class="summary-card">
-                <div class="summary-label">浠婃棩鏀剁泭</div>
-                <div class="summary-value" id="todayProfit">楼0.00</div>
+                <div class="summary-label">今日收益</div>
+                <div class="summary-value" id="todayProfit">¥0.00</div>
                 <div class="summary-sub" id="todayProfitRate">-</div>
             </div>
         </section>
 
         <!-- Add Fund Section -->
         <section class="add-section">
-            <h3>鉃?娣诲姞鍩洪噾</h3>
+            <h3>➕ 添加基金</h3>
             <form class="add-form" id="addFundForm">
                 <div class="input-group">
-                    <label>鍩洪噾浠ｇ爜</label>
-                    <input type="text" id="fundCode" placeholder="濡?000001" required>
+                    <label>基金代码</label>
+                    <input type="text" id="fundCode" placeholder="如 000001" required>
                 </div>
                 <div class="input-group">
-                    <label>鎸佹湁浠介</label>
-                    <input type="number" id="fundShares" placeholder="濡?1000" step="0.01" required>
+                    <label>持有份额</label>
+                    <input type="number" id="fundShares" placeholder="如 1000" step="0.01" required>
                 </div>
                 <div class="input-group">
-                    <label>涔板叆鎴愭湰浠?/label>
-                    <input type="number" id="fundCost" placeholder="濡?1.5000" step="0.0001" required>
+                    <label>买入成本价</label>
+                    <input type="number" id="fundCost" placeholder="如 1.5000" step="0.0001" required>
                 </div>
-                <button type="submit" class="btn btn-primary">娣诲姞</button>
+                <button type="submit" class="btn btn-primary">添加</button>
             </form>
         </section>
 
@@ -713,18 +713,18 @@
         <div class="controls">
             <div class="last-update">
                 <span class="dot"></span>
-                <span id="lastUpdate">鏈€鍚庢洿鏂? --</span>
+                <span id="lastUpdate">最后更新: --</span>
             </div>
             <div style="display: flex; align-items: center; gap: 16px;">
                 <div class="auto-refresh">
-                    <label>鑷姩鍒锋柊</label>
+                    <label>自动刷新</label>
                     <div class="toggle active" id="autoRefreshToggle"></div>
                 </div>
                 <button class="btn-refresh" id="refreshBtn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
                     </svg>
-                    鍒锋柊
+                    刷新
                 </button>
             </div>
         </div>
@@ -735,13 +735,13 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                 </svg>
-                <h3>鏆傛棤鍩洪噾</h3>
-                <p>娣诲姞浣犵殑绗竴鍙熀閲戝紑濮嬭拷韪敹鐩?/p>
+                <h3>暂无基金</h3>
+                <p>添加你的第一只基金开始追踪收益</p>
             </div>
         </div>
 
         <footer class="footer">
-            <p>鏁版嵁鏉ユ簮: 澶╁ぉ鍩洪噾缃?| 姣忓垎閽熻嚜鍔ㄦ洿鏂?/p>
+            <p>数据来源: 天天基金网 | 每分钟自动更新</p>
         </footer>
     </div>
 
@@ -754,17 +754,18 @@
     </div>
 
     <script>
-        // ========== 鐘舵€佺鐞?==========
+        // ========== 状态管理 ==========
         const defaultFunds = [{"code":"006555","shares":19907.03,"cost":2.6121}];
         const savedFunds = localStorage.getItem('funds');
         const state = {
             funds: savedFunds ? JSON.parse(savedFunds) : defaultFunds,
-            fundData: {},  // 瀛樺偍浠嶢PI鑾峰彇鐨勫熀閲戝疄鏃舵暟鎹?            autoRefresh: true,
-            refreshInterval: 60000, // 1鍒嗛挓
+            fundData: {},  // 存储从API获取的基金实时数据
+            autoRefresh: true,
+            refreshInterval: 60000, // 1分钟
             refreshTimer: null
         };
 
-        // ========== DOM 鍏冪礌 ==========
+        // ========== DOM 元素 ==========
         const elements = {
             fundList: document.getElementById('fundList'),
             emptyState: document.getElementById('emptyState'),
@@ -785,9 +786,9 @@
             todayProfitRate: document.getElementById('todayProfitRate')
         };
 
-        // ========== 宸ュ叿鍑芥暟 ==========
+        // ========== 工具函数 ==========
         function formatMoney(num) {
-            return '楼' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return '¥' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
         }
 
         function formatPercent(num) {
@@ -799,7 +800,7 @@
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             toast.innerHTML = `
-                <span class="toast-icon">${type === 'success' ? '鉁? : '鉂?}</span>
+                <span class="toast-icon">${type === 'success' ? '✅' : '❌'}</span>
                 <span class="toast-message">${message}</span>
             `;
             elements.toastContainer.appendChild(toast);
@@ -820,24 +821,25 @@
             localStorage.setItem('funds', JSON.stringify(state.funds));
         }
 
-        // ========== 鍩洪噾鏁版嵁鑾峰彇 ==========
+        // ========== 基金数据获取 ==========
         async function fetchFundData(fundCode) {
             return new Promise((resolve, reject) => {
                 try {
-                    // 浣跨敤 JSONP 鏂瑰紡鑾峰彇鏁版嵁锛堝ぉ澶╁熀閲慉PI鏀寔JSONP锛?                    const callbackName = 'fundCallback_' + Date.now();
+                    // 使用 JSONP 方式获取数据（天天基金API支持JSONP）
+                    const callbackName = 'fundCallback_' + Date.now();
                     const url = `https://fundgz.1234567.com.cn/js/${fundCode}.js?rt=${Date.now()}&callback=${callbackName}`;
                     
-                    // 鍒涘缓 script 鏍囩
+                    // 创建 script 标签
                     const script = document.createElement('script');
                     script.src = url;
                     
-                    // 璁剧疆瓒呮椂
+                    // 设置超时
                     const timeout = setTimeout(() => {
                         cleanup();
                         resolve(null);
                     }, 10000);
                     
-                    // 娓呯悊鍑芥暟
+                    // 清理函数
                     function cleanup() {
                         clearTimeout(timeout);
                         delete window[callbackName];
@@ -846,7 +848,7 @@
                         }
                     }
                     
-                    // JSONP 鍥炶皟鍑芥暟
+                    // JSONP 回调函数
                     window[callbackName] = function(data) {
                         cleanup();
                         if (data && data.fundcode) {
@@ -863,17 +865,17 @@
                         }
                     };
                     
-                    // 閿欒澶勭悊
+                    // 错误处理
                     script.onerror = function() {
                         cleanup();
                         resolve(null);
                     };
                     
-                    // 鍔犺浇鑴氭湰
+                    // 加载脚本
                     document.head.appendChild(script);
                     
                 } catch (error) {
-                    console.error(`鑾峰彇鍩洪噾 ${fundCode} 鏁版嵁澶辫触:`, error);
+                    console.error(`获取基金 ${fundCode} 数据失败:`, error);
                     resolve(null);
                 }
             });
@@ -902,7 +904,7 @@
             saveFunds();
         }
 
-        // ========== UI 鏇存柊 ==========
+        // ========== UI 更新 ==========
         function updateUI() {
             renderFundList();
             updateSummary();
@@ -915,8 +917,8 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                             <path d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                         </svg>
-                        <h3>鏆傛棤鍩洪噾</h3>
-                        <p>娣诲姞浣犵殑绗竴鍙熀閲戝紑濮嬭拷韪敹鐩?/p>
+                        <h3>暂无基金</h3>
+                        <p>添加你的第一只基金开始追踪收益</p>
                     </div>
                 `;
                 return;
@@ -932,7 +934,7 @@
                             <div class="fund-card-header">
                                 <div class="fund-info">
                                     <h4>${fund.code}</h4>
-                                    <span class="fund-code">鍔犺浇涓?..</span>
+                                    <span class="fund-code">加载中...</span>
                                 </div>
                                 <button class="fund-delete" onclick="deleteFund('${fund.code}')">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -942,15 +944,15 @@
                             </div>
                             <div class="fund-grid">
                                 <div class="fund-stat">
-                                    <div class="fund-stat-label">鍑€鍊?/div>
+                                    <div class="fund-stat-label">净值</div>
                                     <div class="fund-stat-value">--</div>
                                 </div>
                                 <div class="fund-stat">
-                                    <div class="fund-stat-label">鎸佹湁浠介</div>
+                                    <div class="fund-stat-label">持有份额</div>
                                     <div class="fund-stat-value">${fund.shares}</div>
                                 </div>
                                 <div class="fund-stat">
-                                    <div class="fund-stat-label">鎴愭湰</div>
+                                    <div class="fund-stat-label">成本</div>
                                     <div class="fund-stat-value">${formatMoney(fund.cost)}</div>
                                 </div>
                             </div>
@@ -979,24 +981,24 @@
                         </div>
                         <div class="fund-grid">
                             <div class="fund-stat">
-                                <div class="fund-stat-label">鍗曚綅鍑€鍊?/div>
-                                <div class="fund-stat-value">楼${data.netWorth.toFixed(4)}</div>
-                                <div class="fund-stat-sub">浼板€? ${formatPercent(todayChange)}</div>
+                                <div class="fund-stat-label">单位净值</div>
+                                <div class="fund-stat-value">¥${data.netWorth.toFixed(4)}</div>
+                                <div class="fund-stat-sub">估值: ${formatPercent(todayChange)}</div>
                             </div>
                             <div class="fund-stat">
-                                <div class="fund-stat-label">鎸佹湁浠介</div>
+                                <div class="fund-stat-label">持有份额</div>
                                 <div class="fund-stat-value">${fund.shares.toFixed(2)}</div>
-                                <div class="fund-stat-sub">鎴愭湰浠?楼${fund.cost.toFixed(4)}</div>
+                                <div class="fund-stat-sub">成本价 ¥${fund.cost.toFixed(4)}</div>
                             </div>
                             <div class="fund-stat">
-                                <div class="fund-stat-label">鎸佹湁鏀剁泭</div>
+                                <div class="fund-stat-label">持有收益</div>
                                 <div class="fund-stat-value ${profit >= 0 ? 'positive' : 'negative'}">${formatMoney(profit)}</div>
                                 <div class="fund-stat-sub">${formatPercent(profitRate)}</div>
                             </div>
                             <div class="fund-stat">
-                                <div class="fund-stat-label">褰撳墠甯傚€?/div>
+                                <div class="fund-stat-label">当前市值</div>
                                 <div class="fund-stat-value">${formatMoney(currentValue)}</div>
-                                <div class="fund-stat-sub">鎴愭湰 ${formatMoney(cost)}</div>
+                                <div class="fund-stat-sub">成本 ${formatMoney(cost)}</div>
                             </div>
                         </div>
                     </div>
@@ -1025,34 +1027,34 @@
 
             elements.totalProfit.textContent = formatMoney(totalProfit);
             elements.totalProfit.className = `summary-value ${totalProfit >= 0 ? 'positive' : 'negative'}`;
-            elements.totalProfitRate.textContent = `鏀剁泭鐜?${formatPercent(totalProfitRate)}`;
+            elements.totalProfitRate.textContent = `收益率 ${formatPercent(totalProfitRate)}`;
             
             elements.totalValue.textContent = formatMoney(totalValue);
-            elements.totalCost.textContent = `鎴愭湰 ${formatMoney(totalCost)}`;
+            elements.totalCost.textContent = `成本 ${formatMoney(totalCost)}`;
             
             elements.todayProfit.textContent = formatMoney(totalProfit);
             elements.todayProfit.className = `summary-value ${totalProfit >= 0 ? 'positive' : 'negative'}`;
-            elements.todayProfitRate.textContent = '浠婃棩鏀剁泭';
+            elements.todayProfitRate.textContent = '今日收益';
         }
 
         function updateLastUpdateTime() {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            elements.lastUpdate.textContent = `鏈€鍚庢洿鏂? ${timeStr}`;
+            elements.lastUpdate.textContent = `最后更新: ${timeStr}`;
         }
 
-        // ========== 鍩洪噾鎿嶄綔 ==========
+        // ========== 基金操作 ==========
         async function addFund(code, shares, cost) {
-            // 妫€鏌ユ槸鍚﹀凡瀛樺湪
+            // 检查是否已存在
             if (state.funds.find(f => f.code === code)) {
-                showToast('璇ュ熀閲戝凡鍦ㄥ垪琛ㄤ腑', 'error');
+                showToast('该基金已在列表中', 'error');
                 return;
             }
 
-            // 鑾峰彇鍩洪噾淇℃伅
+            // 获取基金信息
             const data = await fetchFundData(code);
             if (!data) {
-                showToast('鍩洪噾浠ｇ爜涓嶅瓨鍦紝璇锋鏌ュ悗閲嶈瘯', 'error');
+                showToast('基金代码不存在，请检查后重试', 'error');
                 return;
             }
 
@@ -1067,7 +1069,7 @@
             updateUI();
             
             elements.addFundForm.reset();
-            showToast(`宸叉坊鍔?${data.name}`);
+            showToast(`已添加 ${data.name}`);
         }
 
         function deleteFund(code) {
@@ -1081,11 +1083,11 @@
                 delete state.fundData[code];
                 saveFunds();
                 updateUI();
-                showToast(`宸插垹闄?${name}`);
+                showToast(`已删除 ${name}`);
             }
         }
 
-        // ========== 浜嬩欢澶勭悊 ==========
+        // ========== 事件处理 ==========
         elements.addFundForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const code = elements.fundCode.value.trim();
@@ -1105,10 +1107,10 @@
             
             if (state.autoRefresh) {
                 startAutoRefresh();
-                showToast('宸插紑鍚嚜鍔ㄥ埛鏂?);
+                showToast('已开启自动刷新');
             } else {
                 stopAutoRefresh();
-                showToast('宸插叧闂嚜鍔ㄥ埛鏂?);
+                showToast('已关闭自动刷新');
             }
         });
 
@@ -1124,26 +1126,28 @@
             }
         }
 
-        // ========== 鍒濆鍖?==========
+        // ========== 初始化 ==========
         function init() {
-            // 濡傛灉鏄娆′娇鐢紙娌℃湁淇濆瓨杩囨暟鎹級锛屼繚瀛橀粯璁ゅ熀閲?            if (!savedFunds) {
+            // 如果是首次使用（没有保存过数据），保存默认基金
+            if (!savedFunds) {
                 saveFunds();
             }
             
-            // 鍒濆鍖朥I
+            // 初始化UI
             updateUI();
             
-            // 濡傛灉鏈夊熀閲戯紝鍏堣幏鍙栨暟鎹?            if (state.funds.length > 0) {
+            // 如果有基金，先获取数据
+            if (state.funds.length > 0) {
                 fetchAllFundsData();
             }
             
-            // 鍚姩鑷姩鍒锋柊
+            // 启动自动刷新
             if (state.autoRefresh) {
                 startAutoRefresh();
             }
         }
 
-        // 鍚姩搴旂敤
+        // 启动应用
         init();
     </script>
 </body>
