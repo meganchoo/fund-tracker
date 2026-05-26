@@ -1034,23 +1034,80 @@
         // 收益日历状态
         let calendarYear = 2026;
         
-        // 模拟月度收益数据（实际应用中应从后端获取）
-        const monthlyProfits = {
-            2026: {
-                1: 357.42,
-                2: 1208.34,
-                3: -3162.34,
-                4: 4226.01,
-                5: -195.92,
-                6: 0,
-                7: 0,
-                8: 0,
-                9: 0,
-                10: 0,
-                11: 0,
-                12: 0
+        // 从localStorage获取历史快照
+        function getSnapshots() {
+            const saved = localStorage.getItem('fundSnapshots');
+            return saved ? JSON.parse(saved) : {};
+        }
+
+        // 保存收益快照
+        function saveSnapshot(date, totalProfit) {
+            const snapshots = getSnapshots();
+            const dateKey = date.replace(/-/g, '');
+            snapshots[dateKey] = {
+                date: date,
+                totalProfit: totalProfit
+            };
+            // 只保留最近365天的快照
+            const keys = Object.keys(snapshots).sort().reverse();
+            if (keys.length > 365) {
+                keys.slice(365).forEach(key => delete snapshots[key]);
             }
-        };
+            localStorage.setItem('fundSnapshots', JSON.stringify(snapshots));
+        }
+
+        // 计算月度收益
+        function getMonthlyProfit(year, month) {
+            const snapshots = getSnapshots();
+            const monthStr = month.toString().padStart(2, '0');
+            
+            // 获取当月第一天的快照和当天的快照
+            const firstDayKey = `${year}${monthStr}01`;
+            const lastDayKey = `${year}${monthStr}31`;
+            const today = new Date();
+            const todayKey = today.getFullYear().toString() + 
+                            (today.getMonth() + 1).toString().padStart(2, '0') + 
+                            today.getDate().toString().padStart(2, '0');
+            
+            // 查找当月的所有快照
+            const monthSnapshots = {};
+            Object.keys(snapshots).forEach(key => {
+                if (key.startsWith(`${year}${monthStr}`)) {
+                    monthSnapshots[key] = snapshots[key];
+                }
+            });
+            
+            const snapshotKeys = Object.keys(monthSnapshots).sort();
+            if (snapshotKeys.length === 0) return 0;
+            
+            // 如果是当前月份，计算从月初到今天的收益变化
+            if (today.getFullYear() === year && today.getMonth() + 1 === month) {
+                const firstKey = snapshotKeys[0];
+                const lastKey = Object.keys(monthSnapshots).sort().reverse()[0];
+                if (firstKey && lastKey) {
+                    return monthSnapshots[lastKey].totalProfit - monthSnapshots[firstKey].totalProfit;
+                }
+            }
+            
+            // 否则，计算当月的总收益（月末 - 月初）
+            const firstSnapshot = monthSnapshots[snapshotKeys[0]];
+            const lastSnapshot = monthSnapshots[snapshotKeys[snapshotKeys.length - 1]];
+            
+            if (firstSnapshot && lastSnapshot) {
+                return lastSnapshot.totalProfit - firstSnapshot.totalProfit;
+            }
+            
+            return 0;
+        }
+
+        // 获取指定年份的月度收益数据
+        function getYearlyProfits(year) {
+            const profits = {};
+            for (let month = 1; month <= 12; month++) {
+                profits[month] = getMonthlyProfit(year, month);
+            }
+            return profits;
+        }
 
         // 切换年份
         function changeYear(delta) {
@@ -1065,12 +1122,15 @@
             const currentMonth = new Date().getMonth() + 1;
             const currentYear = new Date().getFullYear();
             
+            // 获取指定年份的真实月度收益数据
+            const yearlyProfits = getYearlyProfits(calendarYear);
+            
             let html = '';
             const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
             
             months.forEach((monthName, index) => {
                 const month = index + 1;
-                const profit = (monthlyProfits[calendarYear] && monthlyProfits[calendarYear][month]) || 0;
+                const profit = yearlyProfits[month] || 0;
                 const isCurrentMonth = (calendarYear === currentYear && month === currentMonth);
                 
                 let cardClass = '';
@@ -1279,8 +1339,22 @@
                 }
             });
 
+            // 计算当前总收益并保存快照
+            let totalProfit = 0;
+            state.funds.forEach(fund => {
+                const data = state.fundData[fund.code];
+                if (data) {
+                    const value = data.netWorth * fund.shares;
+                    const cost = fund.cost * fund.shares;
+                    totalProfit += (value - cost);
+                }
+            });
+            const today = new Date().toISOString().split('T')[0];
+            saveSnapshot(today, totalProfit);
+
             btn.innerHTML = '🔄 刷新数据';
             updateUI();
+            renderCalendar(); // 更新日历
             showToast('数据已更新');
         }
 
