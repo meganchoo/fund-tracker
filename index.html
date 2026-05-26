@@ -310,6 +310,31 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
             border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.2s ease;
+        }
+
+        th:hover {
+            color: var(--text-primary);
+        }
+
+        th.sortable::after {
+            content: ' ⇅';
+            opacity: 0.5;
+            font-size: 0.7rem;
+        }
+
+        th.sort-asc::after {
+            content: ' ↑';
+            opacity: 1;
+            color: var(--accent-green);
+        }
+
+        th.sort-desc::after {
+            content: ' ↓';
+            opacity: 1;
+            color: var(--accent-green);
         }
 
         td {
@@ -759,13 +784,13 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>基金名称</th>
-                            <th>持有份额</th>
-                            <th>成本价</th>
-                            <th>当前净值</th>
-                            <th>持有收益</th>
-                            <th>收益率</th>
-                            <th>市值</th>
+                            <th onclick="sortTable('name')" class="sortable">基金名称</th>
+                            <th onclick="sortTable('shares')" class="sortable">持有份额</th>
+                            <th onclick="sortTable('cost')" class="sortable">成本价</th>
+                            <th onclick="sortTable('netWorth')" class="sortable">当前净值</th>
+                            <th onclick="sortTable('profit')" class="sortable">持有收益</th>
+                            <th onclick="sortTable('profitRate')" class="sortable">收益率</th>
+                            <th onclick="sortTable('value')" class="sortable">市值</th>
                             <th>操作</th>
                         </tr>
                     </thead>
@@ -851,9 +876,90 @@
             });
         }
 
+        // 排序状态
+        let sortState = {
+            column: null,
+            direction: 'asc' // 'asc' 或 'desc'
+        };
+
         // 工具函数
         function formatMoney(num) {
             return '¥' + num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // 表格排序功能
+        function sortTable(column) {
+            // 切换排序方向
+            if (sortState.column === column) {
+                sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortState.column = column;
+                sortState.direction = 'desc'; // 默认降序（大的在前）
+            }
+
+            // 更新表头样式
+            document.querySelectorAll('th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+            });
+            const thIndex = ['name', 'shares', 'cost', 'netWorth', 'profit', 'profitRate', 'value'].indexOf(column);
+            if (thIndex >= 0) {
+                const th = document.querySelectorAll('thead th')[thIndex];
+                th.classList.add(sortState.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+            }
+
+            // 排序数据
+            state.funds.sort((a, b) => {
+                let valueA, valueB;
+                const dataA = state.fundData[a.code];
+                const dataB = state.fundData[b.code];
+
+                switch(column) {
+                    case 'name':
+                        valueA = a.name || a.code;
+                        valueB = b.name || b.code;
+                        break;
+                    case 'shares':
+                        valueA = a.shares;
+                        valueB = b.shares;
+                        break;
+                    case 'cost':
+                        valueA = a.cost;
+                        valueB = b.cost;
+                        break;
+                    case 'netWorth':
+                        valueA = dataA ? dataA.netWorth : 0;
+                        valueB = dataB ? dataB.netWorth : 0;
+                        break;
+                    case 'profit':
+                        valueA = dataA ? (dataA.netWorth - a.cost) * a.shares : 0;
+                        valueB = dataB ? (dataB.netWorth - b.cost) * b.shares : 0;
+                        break;
+                    case 'profitRate':
+                        valueA = dataA ? ((dataA.netWorth - a.cost) / a.cost) * 100 : 0;
+                        valueB = dataB ? ((dataB.netWorth - b.cost) / b.cost) * 100 : 0;
+                        break;
+                    case 'value':
+                        valueA = dataA ? dataA.netWorth * a.shares : 0;
+                        valueB = dataB ? dataB.netWorth * b.shares : 0;
+                        break;
+                    default:
+                        return 0;
+                }
+
+                // 比较
+                if (typeof valueA === 'string') {
+                    return sortState.direction === 'asc' 
+                        ? valueA.localeCompare(valueB)
+                        : valueB.localeCompare(valueA);
+                } else {
+                    return sortState.direction === 'asc' 
+                        ? valueA - valueB 
+                        : valueB - valueA;
+                }
+            });
+
+            // 重新渲染表格
+            updateTable();
         }
 
         function formatPercent(num) {
