@@ -1176,7 +1176,7 @@
             document.querySelectorAll('th').forEach(th => {
                 th.classList.remove('sort-asc', 'sort-desc');
             });
-            const thIndex = ['name', 'shares', 'cost', 'netWorth', 'profit', 'profitRate', 'value'].indexOf(column);
+            const thIndex = ['name', 'profit', 'profitRate', 'value'].indexOf(column);
             if (thIndex >= 0) {
                 const th = document.querySelectorAll('thead th')[thIndex];
                 th.classList.add(sortState.direction === 'asc' ? 'sort-asc' : 'sort-desc');
