@@ -2041,38 +2041,45 @@
         // 预置交易记录（006555 浦银安盛全球智能科技股票(QDII)A）
         const presetTransactions = {
             "006555": [
-                { date: "2024-01-21", amount: 3000, type: "buy" },
-                { date: "2024-01-23", amount: 3000, type: "buy" },
-                { date: "2024-01-24", amount: 3000, type: "buy" },
-                { date: "2024-02-06", amount: 3000, type: "buy" },
-                { date: "2024-02-16", amount: 3000, type: "buy" },
-                { date: "2024-02-16", amount: 3000, type: "buy" },
-                { date: "2024-02-18", amount: 1000, type: "buy" },
-                { date: "2024-02-19", amount: 1000, type: "buy" },
-                { date: "2024-02-20", amount: 1000, type: "buy" },
-                { date: "2024-02-21", amount: 1000, type: "buy" },
-                { date: "2024-02-22", amount: 1000, type: "buy" },
-                { date: "2024-02-24", amount: 500, type: "buy" },
-                { date: "2024-02-26", amount: 500, type: "buy" },
-                { date: "2024-02-27", amount: 500, type: "buy" },
-                { date: "2024-02-29", amount: 500, type: "buy" },
-                { date: "2024-03-03", amount: 500, type: "buy" },
-                { date: "2024-03-05", amount: 500, type: "buy" },
-                { date: "2024-03-07", amount: 500, type: "buy" },
-                { date: "2024-03-11", amount: 500, type: "buy" },
-                { date: "2024-03-12", amount: 500, type: "buy" },
-                { date: "2024-03-14", amount: 500, type: "buy" },
-                { date: "2024-03-19", amount: 2000, type: "buy" },
-                { date: "2024-03-19", amount: 3000, type: "buy" }
+                // 2024年11月
+                { date: "2024-11-25", amount: 1000, type: "buy" },
+                { date: "2024-11-25", amount: 7000, type: "buy" },
+                // 2024年12月
+                { date: "2024-12-16", amount: 5000, type: "buy" },
+                { date: "2024-12-16", amount: 5000, type: "buy" },
+                // 2025年1月
+                { date: "2025-01-21", amount: 3000, type: "buy" },
+                { date: "2025-01-21", amount: 3000, type: "buy" },
+                { date: "2025-01-21", amount: 3000, type: "buy" },
+                // 2025年2月
+                { date: "2025-02-04", amount: 3000, type: "buy" },
+                { date: "2025-02-04", amount: 3000, type: "buy" },
+                { date: "2025-02-04", amount: 3000, type: "buy" },
+                { date: "2025-02-04", amount: 1000, type: "buy" },
+                { date: "2025-02-04", amount: 1000, type: "buy" },
+                { date: "2025-02-05", amount: 1000, type: "buy" },
+                { date: "2025-02-05", amount: 1000, type: "buy" },
+                { date: "2025-02-05", amount: 1000, type: "buy" },
+                { date: "2025-02-07", amount: 500, type: "buy" },
+                { date: "2025-02-07", amount: 500, type: "buy" },
+                { date: "2025-02-10", amount: 500, type: "buy" },
+                { date: "2025-02-17", amount: 500, type: "buy" },
+                { date: "2025-02-24", amount: 500, type: "buy" },
+                // 2025年3月
+                { date: "2025-03-03", amount: 500, type: "buy" },
+                { date: "2025-03-10", amount: 500, type: "buy" },
+                { date: "2025-03-17", amount: 500, type: "buy" },
+                { date: "2025-03-17", amount: 500, type: "buy" },
+                { date: "2025-03-17", amount: 500, type: "buy" },
+                { date: "2025-03-17", amount: 2000, type: "buy" },
+                { date: "2025-03-17", amount: 3000, type: "buy" }
             ]
         };
 
         // 初始化预置交易记录
         function initPresetTransactions() {
-            const existing = getTransactions();
-            if (Object.keys(existing).length === 0) {
-                localStorage.setItem('fundTransactions', JSON.stringify(presetTransactions));
-            }
+            // 强制更新为最新的预置交易记录
+            localStorage.setItem('fundTransactions', JSON.stringify(presetTransactions));
         }
 
         function init() {
