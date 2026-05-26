@@ -1193,8 +1193,15 @@
         // 计算月度收益（基于交易记录和历史净值）
         async function calculateMonthlyProfitFromTransactions(year, month) {
             const monthStr = month.toString().padStart(2, '0');
+            const lastDayOfMonth = new Date(year, month, 0).getDate();
             const startDate = `${year}-${monthStr}-01`;
-            const endDate = `${year}-${monthStr}-28`;
+            const endDate = `${year}-${monthStr}-${lastDayOfMonth}`;
+            const prevMonth = month === 1 ? 12 : month - 1;
+            const prevYear = month === 1 ? year - 1 : year;
+            const prevMonthStr = prevMonth.toString().padStart(2, '0');
+            const prevLastDay = new Date(prevYear, prevMonth, 0).getDate();
+            const prevStartDate = `${prevYear}-${prevMonthStr}-01`;
+            const prevEndDate = `${prevYear}-${prevMonthStr}-${prevLastDay}`;
             
             const transactions = getTransactions();
             let totalMonthProfit = 0;
@@ -1204,42 +1211,68 @@
                 const fundTx = transactions[fundCode];
                 if (!fundTx || fundTx.length === 0) continue;
                 
-                // 获取该月的历史净值
-                const historyData = await fetchHistoryNetWorth(fundCode, startDate, endDate);
-                if (!historyData || historyData.length === 0) continue;
+                // 获取上月末和本月末的历史净值
+                const prevMonthData = await fetchHistoryNetWorth(fundCode, prevStartDate, prevEndDate);
+                const currMonthData = await fetchHistoryNetWorth(fundCode, startDate, endDate);
                 
-                // 计算月初和月末的持仓市值
-                const firstDay = historyData[historyData.length - 1]; // 最早的一天
-                const lastDay = historyData[0]; // 最新的一天
+                if (!currMonthData || currMonthData.length === 0) continue;
                 
-                // 计算月初份额和月末份额
-                let startShares = 0;
+                const currLastDay = currMonthData[0]; // 本月最新净值
+                const currFirstDay = currMonthData[currMonthData.length - 1]; // 本月最早净值
+                
+                // 计算月末持仓市值
                 let endShares = 0;
-                let monthInvestment = 0; // 当月投入金额
+                let monthInvestment = 0;
                 
                 fundTx.forEach(tx => {
                     const txDate = new Date(tx.date);
-                    const startOfMonth = new Date(startDate);
                     const endOfMonth = new Date(endDate);
                     
                     if (tx.type === 'buy') {
-                        if (txDate < startOfMonth) {
-                            // 月初之前买入
-                            startShares += tx.amount / firstDay.netWorth;
-                            endShares += tx.amount / lastDay.netWorth;
-                        } else if (txDate <= endOfMonth) {
-                            // 当月买入
-                            endShares += tx.amount / lastDay.netWorth;
-                            monthInvestment += tx.amount;
+                        if (txDate <= endOfMonth) {
+                            // 使用交易日期对应的净值来计算份额
+                            // 找到最接近交易日期的净值
+                            let txNetWorth = currFirstDay.netWorth;
+                            for (const day of currMonthData) {
+                                if (new Date(day.date) <= txDate) {
+                                    txNetWorth = day.netWorth;
+                                    break;
+                                }
+                            }
+                            endShares += tx.amount / txNetWorth;
+                            
+                            // 判断是否是当月投入
+                            const startOfMonth = new Date(startDate);
+                            if (txDate >= startOfMonth && txDate <= endOfMonth) {
+                                monthInvestment += tx.amount;
+                            }
                         }
                     }
                 });
                 
-                // 月初市值和月末市值
-                const startValue = startShares * firstDay.netWorth;
-                const endValue = endShares * lastDay.netWorth;
+                // 计算月初持仓市值
+                let startValue = 0;
+                if (prevMonthData && prevMonthData.length > 0) {
+                    const prevLastNetWorth = prevMonthData[0].netWorth;
+                    let startShares = 0;
+                    fundTx.forEach(tx => {
+                        const txDate = new Date(tx.date);
+                        const prevEndOfMonth = new Date(prevEndDate);
+                        if (tx.type === 'buy' && txDate <= prevEndOfMonth) {
+                            let txNetWorth = prevMonthData[prevMonthData.length - 1].netWorth;
+                            for (const day of prevMonthData) {
+                                if (new Date(day.date) <= txDate) {
+                                    txNetWorth = day.netWorth;
+                                    break;
+                                }
+                            }
+                            startShares += tx.amount / txNetWorth;
+                        }
+                    });
+                    startValue = startShares * prevLastNetWorth;
+                }
                 
-                // 月度收益 = 月末市值 - 月初市值 - 当月投入
+                const endValue = endShares * currLastDay.netWorth;
                 const monthProfit = endValue - startValue - monthInvestment;
                 totalMonthProfit += monthProfit;
             }
@@ -1923,29 +1956,29 @@
         }
 
         async function recalculateCalendar() {
-            showToast('正在计算月度收益...');
+            showToast('正在计算月度收益，请稍候...');
+            
+            const snapshots = getSnapshots();
+            let cumulative = 0;
             
             // 计算当前年份每个月的收益
             for (let month = 1; month <= 12; month++) {
                 const profit = await calculateMonthlyProfitFromTransactions(calendarYear, month);
+                cumulative += profit;
+                
                 // 保存到快照中
                 const monthStr = month.toString().padStart(2, '0');
                 const lastDay = new Date(calendarYear, month, 0).getDate();
                 const dateKey = `${calendarYear}${monthStr}${lastDay}`;
                 
-                const snapshots = getSnapshots();
-                // 计算累计收益
-                let cumulative = 0;
-                for (let m = 1; m <= month; m++) {
-                    cumulative += await calculateMonthlyProfitFromTransactions(calendarYear, m);
-                }
                 snapshots[dateKey] = {
                     date: `${calendarYear}-${monthStr}-${lastDay}`,
-                    totalProfit: cumulative
+                    totalProfit: cumulative,
+                    monthProfit: profit
                 };
-                localStorage.setItem('fundSnapshots', JSON.stringify(snapshots));
             }
             
+            localStorage.setItem('fundSnapshots', JSON.stringify(snapshots));
             renderCalendar();
             showToast('月度收益计算完成！');
         }
@@ -1999,8 +2032,46 @@
         }
 
         // 初始化
+        // 预置交易记录（006555 浦银安盛全球智能科技股票(QDII)A）
+        const presetTransactions = {
+            "006555": [
+                { date: "2024-01-21", amount: 3000, type: "buy" },
+                { date: "2024-01-23", amount: 3000, type: "buy" },
+                { date: "2024-01-24", amount: 3000, type: "buy" },
+                { date: "2024-02-06", amount: 3000, type: "buy" },
+                { date: "2024-02-16", amount: 3000, type: "buy" },
+                { date: "2024-02-16", amount: 3000, type: "buy" },
+                { date: "2024-02-18", amount: 1000, type: "buy" },
+                { date: "2024-02-19", amount: 1000, type: "buy" },
+                { date: "2024-02-20", amount: 1000, type: "buy" },
+                { date: "2024-02-21", amount: 1000, type: "buy" },
+                { date: "2024-02-22", amount: 1000, type: "buy" },
+                { date: "2024-02-24", amount: 500, type: "buy" },
+                { date: "2024-02-26", amount: 500, type: "buy" },
+                { date: "2024-02-27", amount: 500, type: "buy" },
+                { date: "2024-02-29", amount: 500, type: "buy" },
+                { date: "2024-03-03", amount: 500, type: "buy" },
+                { date: "2024-03-05", amount: 500, type: "buy" },
+                { date: "2024-03-07", amount: 500, type: "buy" },
+                { date: "2024-03-11", amount: 500, type: "buy" },
+                { date: "2024-03-12", amount: 500, type: "buy" },
+                { date: "2024-03-14", amount: 500, type: "buy" },
+                { date: "2024-03-19", amount: 2000, type: "buy" },
+                { date: "2024-03-19", amount: 3000, type: "buy" }
+            ]
+        };
+
+        // 初始化预置交易记录
+        function initPresetTransactions() {
+            const existing = getTransactions();
+            if (Object.keys(existing).length === 0) {
+                localStorage.setItem('fundTransactions', JSON.stringify(presetTransactions));
+            }
+        }
+
         function init() {
             if (!savedFunds) saveFunds();
+            initPresetTransactions();
             updateUI();
             refreshData();
             renderCalendar();
