@@ -226,7 +226,139 @@
         .summary-change.positive { color: var(--accent-green); }
         .summary-change.negative { color: var(--accent-red); }
 
-        /* Section 2: Charts */
+        /* Section 2: Calendar */
+        .calendar-section {
+            margin-bottom: 30px;
+        }
+
+        .calendar-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .calendar-icon {
+            font-size: 1.3rem;
+        }
+
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .year-display {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .calendar-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .calendar-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .month-card {
+            border-radius: 16px;
+            padding: 20px 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .month-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .month-card.positive {
+            background: rgba(199, 91, 91, 0.08);
+            border: 1px solid rgba(199, 91, 91, 0.15);
+        }
+
+        .month-card.negative {
+            background: rgba(107, 142, 90, 0.08);
+            border: 1px solid rgba(107, 142, 90, 0.15);
+        }
+
+        .month-card.current {
+            background: var(--accent-green);
+            border: 1px solid var(--accent-green);
+            color: white;
+        }
+
+        .month-card.current .month-name,
+        .month-card.current .month-profit {
+            color: white;
+        }
+
+        .month-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .month-profit {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .month-card.positive .month-profit {
+            color: var(--accent-red);
+        }
+
+        .month-card.negative .month-profit {
+            color: var(--accent-green);
+        }
+
+        /* Section 3: Charts */
         .charts-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -679,6 +811,26 @@
             </div>
         </section>
 
+        <!-- Section 2: 收益日历 -->
+        <section class="calendar-section">
+            <div class="calendar-card">
+                <div class="calendar-header">
+                    <div class="calendar-title">
+                        <span class="calendar-icon">📅</span>
+                        <span>收益日历</span>
+                    </div>
+                    <div class="calendar-nav">
+                        <button class="nav-btn" onclick="changeYear(-1)">‹</button>
+                        <span class="year-display" id="calendarYear">2026年</span>
+                        <button class="nav-btn" onclick="changeYear(1)">›</button>
+                    </div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- 动态生成月份卡片 -->
+                </div>
+            </div>
+        </section>
+
         <!-- Controls -->
         <div class="controls">
             <div class="last-update">
@@ -691,7 +843,7 @@
             </div>
         </div>
 
-        <!-- Section 2: Charts -->
+        <!-- Section 3: Charts -->
         <section class="charts-section">
             <div class="chart-card">
                 <div class="chart-header">
@@ -878,6 +1030,72 @@
             column: null,
             direction: 'asc' // 'asc' 或 'desc'
         };
+
+        // 收益日历状态
+        let calendarYear = 2026;
+        
+        // 模拟月度收益数据（实际应用中应从后端获取）
+        const monthlyProfits = {
+            2026: {
+                1: 357.42,
+                2: 1208.34,
+                3: -3162.34,
+                4: 4226.01,
+                5: -195.92,
+                6: 0,
+                7: 0,
+                8: 0,
+                9: 0,
+                10: 0,
+                11: 0,
+                12: 0
+            }
+        };
+
+        // 切换年份
+        function changeYear(delta) {
+            calendarYear += delta;
+            document.getElementById('calendarYear').textContent = calendarYear + '年';
+            renderCalendar();
+        }
+
+        // 渲染收益日历
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+            
+            let html = '';
+            const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+            
+            months.forEach((monthName, index) => {
+                const month = index + 1;
+                const profit = (monthlyProfits[calendarYear] && monthlyProfits[calendarYear][month]) || 0;
+                const isCurrentMonth = (calendarYear === currentYear && month === currentMonth);
+                
+                let cardClass = '';
+                if (isCurrentMonth) {
+                    cardClass = 'current';
+                } else if (profit > 0) {
+                    cardClass = 'positive';
+                } else if (profit < 0) {
+                    cardClass = 'negative';
+                } else {
+                    cardClass = 'neutral';
+                }
+                
+                const profitText = profit === 0 ? '¥0.00' : (profit > 0 ? '+' + formatMoney(profit).replace('¥', '¥') : formatMoney(profit));
+                
+                html += `
+                    <div class="month-card ${cardClass}">
+                        <div class="month-name">${monthName}</div>
+                        <div class="month-profit">${profitText}</div>
+                    </div>
+                `;
+            });
+            
+            grid.innerHTML = html;
+        }
 
         // 工具函数
         function formatMoney(num) {
@@ -1406,6 +1624,7 @@
             if (!savedFunds) saveFunds();
             updateUI();
             refreshData();
+            renderCalendar();
         }
 
         // 点击遮罩关闭modal
