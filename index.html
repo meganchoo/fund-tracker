@@ -1101,53 +1101,37 @@
             localStorage.setItem('fundSnapshots', JSON.stringify(snapshots));
         }
 
-        // 获取基金历史净值（天天基金API）
+        // 获取基金历史净值（天天基金API - JSON格式，支持CORS）
         async function fetchHistoryNetWorth(fundCode, startDate, endDate) {
-            return new Promise((resolve) => {
-                const callbackName = 'historyCallback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                const url = `https://fund.eastmoney.com/f10/F10DataApi.aspx?type=lsjz&code=${fundCode}&sdate=${startDate}&edate=${endDate}&per=365`;
+            try {
+                // 使用东方财富基金历史净值接口
+                const url = `https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=0.${fundCode}&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&klt=101&fqt=1&beg=${startDate.replace(/-/g, '')}&end=${endDate.replace(/-/g, '')}`;
                 
-                const script = document.createElement('script');
-                script.src = url;
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
                 
-                const timeout = setTimeout(() => {
-                    cleanup();
-                    resolve(null);
-                }, 10000);
-
-                function cleanup() {
-                    clearTimeout(timeout);
-                    delete window[callbackName];
-                    if (script.parentNode) script.parentNode.removeChild(script);
-                }
-
-                // 由于这个API返回的是HTML，我们需要用fetch来获取
-                fetch(url)
-                    .then(response => response.text())
-                    .then(text => {
-                        cleanup();
-                        // 解析HTML中的净值数据
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(text, 'text/html');
-                        const rows = doc.querySelectorAll('tbody tr');
-                        const data = [];
-                        rows.forEach(row => {
-                            const cells = row.querySelectorAll('td');
-                            if (cells.length >= 2) {
-                                const date = cells[0].textContent.trim();
-                                const netWorth = parseFloat(cells[1].textContent.trim());
-                                if (date && !isNaN(netWorth)) {
-                                    data.push({ date, netWorth });
-                                }
-                            }
-                        });
-                        resolve(data.length > 0 ? data : null);
-                    })
-                    .catch(() => {
-                        cleanup();
-                        resolve(null);
-                    });
-            });
+                if (!response.ok) return null;
+                
+                const data = await response.json();
+                
+                if (!data || !data.data || !data.data.klines) return null;
+                
+                // 解析K线数据
+                const klines = data.data.klines;
+                return klines.map(kline => {
+                    const parts = kline.split(',');
+                    return {
+                        date: parts[0],
+                        netWorth: parseFloat(parts[1]) // 开盘价作为净值
+                    };
+                }).filter(item => !isNaN(item.netWorth));
+                
+            } catch (e) {
+                console.error('获取历史净值失败:', e);
+                return null;
+            }
         }
 
         // 获取交易记录
@@ -1201,83 +1185,87 @@
             const prevYear = month === 1 ? year - 1 : year;
             const prevMonthStr = prevMonth.toString().padStart(2, '0');
             const prevLastDay = new Date(prevYear, prevMonth, 0).getDate();
-            const prevStartDate = `${prevYear}-${prevMonthStr}-01`;
             const prevEndDate = `${prevYear}-${prevMonthStr}-${prevLastDay}`;
-            
+
             const transactions = getTransactions();
             let totalMonthProfit = 0;
-            
+
             // 遍历每只有交易记录的基金
             for (const fundCode of Object.keys(transactions)) {
                 const fundTx = transactions[fundCode];
                 if (!fundTx || fundTx.length === 0) continue;
-                
-                // 获取上月末和本月末的历史净值
-                const prevMonthData = await fetchHistoryNetWorth(fundCode, prevStartDate, prevEndDate);
+
+                // 获取本月的历史净值
                 const currMonthData = await fetchHistoryNetWorth(fundCode, startDate, endDate);
-                
-                if (!currMonthData || currMonthData.length === 0) continue;
-                
-                const currLastDay = currMonthData[0]; // 本月最新净值
-                const currFirstDay = currMonthData[currMonthData.length - 1]; // 本月最早净值
-                
-                // 计算月末持仓市值
-                let endShares = 0;
+
+                if (!currMonthData || currMonthData.length === 0) {
+                    // 如果无法获取历史净值，跳过该月
+                    continue;
+                }
+
+                // 找到月末和月初的净值（按日期排序，第一条是最新，最后一条是最早）
+                // K线数据按日期升序排列
+                const sortedData = [...currMonthData].sort((a, b) => new Date(a.date) - new Date(b.date));
+                const firstDayData = sortedData[0]; // 月初净值
+                const lastDayData = sortedData[sortedData.length - 1]; // 月末净值
+
+                if (!firstDayData || !lastDayData) continue;
+
+                // 计算当月投入金额
                 let monthInvestment = 0;
-                
                 fundTx.forEach(tx => {
-                    const txDate = new Date(tx.date);
-                    const endOfMonth = new Date(endDate);
-                    
                     if (tx.type === 'buy') {
-                        if (txDate <= endOfMonth) {
-                            // 使用交易日期对应的净值来计算份额
-                            // 找到最接近交易日期的净值
-                            let txNetWorth = currFirstDay.netWorth;
-                            for (const day of currMonthData) {
-                                if (new Date(day.date) <= txDate) {
-                                    txNetWorth = day.netWorth;
-                                    break;
-                                }
-                            }
-                            endShares += tx.amount / txNetWorth;
-                            
-                            // 判断是否是当月投入
-                            const startOfMonth = new Date(startDate);
-                            if (txDate >= startOfMonth && txDate <= endOfMonth) {
-                                monthInvestment += tx.amount;
-                            }
+                        const txDate = new Date(tx.date);
+                        const startOfMonth = new Date(startDate);
+                        const endOfMonth = new Date(endDate);
+                        if (txDate >= startOfMonth && txDate <= endOfMonth) {
+                            monthInvestment += tx.amount;
                         }
                     }
                 });
-                
-                // 计算月初持仓市值
-                let startValue = 0;
-                if (prevMonthData && prevMonthData.length > 0) {
-                    const prevLastNetWorth = prevMonthData[0].netWorth;
-                    let startShares = 0;
-                    fundTx.forEach(tx => {
+
+                // 计算月初和月末的持仓市值
+                // 月初持仓市值 = 月初之前所有买入的份额 × 月初净值
+                // 月末持仓市值 = 月末之前所有买入的份额 × 月末净值
+
+                let startShares = 0;
+                let endShares = 0;
+                const startOfMonth = new Date(startDate);
+                const endOfMonth = new Date(endDate);
+
+                fundTx.forEach(tx => {
+                    if (tx.type === 'buy') {
                         const txDate = new Date(tx.date);
-                        const prevEndOfMonth = new Date(prevEndDate);
-                        if (tx.type === 'buy' && txDate <= prevEndOfMonth) {
-                            let txNetWorth = prevMonthData[prevMonthData.length - 1].netWorth;
-                            for (const day of prevMonthData) {
-                                if (new Date(day.date) <= txDate) {
-                                    txNetWorth = day.netWorth;
-                                    break;
-                                }
+
+                        // 找到交易日期对应的净值
+                        let txNetWorth = firstDayData.netWorth;
+                        for (const day of sortedData) {
+                            if (new Date(day.date) >= txDate) {
+                                txNetWorth = day.netWorth;
+                                break;
                             }
-                            startShares += tx.amount / txNetWorth;
                         }
-                    });
-                    startValue = startShares * prevLastNetWorth;
-                }
-                
-                const endValue = endShares * currLastDay.netWorth;
+
+                        // 月初之前买入的份额
+                        if (txDate < startOfMonth) {
+                            startShares += tx.amount / txNetWorth;
+                            endShares += tx.amount / lastDayData.netWorth;
+                        }
+                        // 当月买入的份额
+                        if (txDate >= startOfMonth && txDate <= endOfMonth) {
+                            endShares += tx.amount / lastDayData.netWorth;
+                        }
+                    }
+                });
+
+                const startValue = startShares * firstDayData.netWorth;
+                const endValue = endShares * lastDayData.netWorth;
+
+                // 月度收益 = 月末市值 - 月初市值 - 当月投入
                 const monthProfit = endValue - startValue - monthInvestment;
                 totalMonthProfit += monthProfit;
             }
-            
+
             return totalMonthProfit;
         }
 
@@ -1962,31 +1950,61 @@
         }
 
         async function recalculateCalendar() {
+            // 清空旧的快照数据
+            localStorage.setItem('fundSnapshots', JSON.stringify({}));
+
+            const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
             showToast('正在计算月度收益，请稍候...');
-            
-            const snapshots = getSnapshots();
+
+            const snapshots = {};
             let cumulative = 0;
-            
+            let calculatedMonths = 0;
+
             // 计算当前年份每个月的收益
             for (let month = 1; month <= 12; month++) {
                 const profit = await calculateMonthlyProfitFromTransactions(calendarYear, month);
-                cumulative += profit;
-                
-                // 保存到快照中
-                const monthStr = month.toString().padStart(2, '0');
-                const lastDay = new Date(calendarYear, month, 0).getDate();
-                const dateKey = `${calendarYear}${monthStr}${lastDay}`;
-                
-                snapshots[dateKey] = {
-                    date: `${calendarYear}-${monthStr}-${lastDay}`,
-                    totalProfit: cumulative,
-                    monthProfit: profit
-                };
+
+                // 只有当有实际数据时才保存
+                if (profit !== 0 || hasTransactionsInMonth(calendarYear, month)) {
+                    cumulative += profit;
+                    calculatedMonths++;
+
+                    // 保存到快照中
+                    const monthStr = month.toString().padStart(2, '0');
+                    const lastDay = new Date(calendarYear, month, 0).getDate();
+                    const dateKey = `${calendarYear}${monthStr}${lastDay}`;
+
+                    snapshots[dateKey] = {
+                        date: `${calendarYear}-${monthStr}-${lastDay}`,
+                        totalProfit: cumulative,
+                        monthProfit: profit
+                    };
+
+                    // 显示进度
+                    showToast(`正在计算${months[month-1]}... (${calculatedMonths}个月已完成)`);
+                }
             }
-            
+
             localStorage.setItem('fundSnapshots', JSON.stringify(snapshots));
             renderCalendar();
-            showToast('月度收益计算完成！');
+            showToast(`月度收益计算完成！共计算了${calculatedMonths}个月`);
+        }
+
+        // 检查某月是否有交易
+        function hasTransactionsInMonth(year, month) {
+            const transactions = getTransactions();
+            const monthStr = month.toString().padStart(2, '0');
+            const startDate = `${year}-${monthStr}-01`;
+            const endDate = `${year}-${monthStr}-31`;
+
+            for (const fundCode of Object.keys(transactions)) {
+                for (const tx of transactions[fundCode]) {
+                    if (tx.date >= startDate && tx.date <= endDate) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         // 添加基金
