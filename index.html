@@ -828,11 +828,28 @@
 
         const savedFunds = localStorage.getItem('fundsPro');
         let state = {
-            funds: savedFunds ? JSON.parse(savedFunds) : JSON.parse(JSON.stringify(defaultFunds)),
+            funds: JSON.parse(JSON.stringify(defaultFunds)),
             fundData: {},
             profitChart: null,
             valueChart: null
         };
+
+        // 如果有保存的数据，合并到默认基金列表中（保留用户自定义的份额和成本）
+        if (savedFunds) {
+            const saved = JSON.parse(savedFunds);
+            saved.forEach(savedFund => {
+                const existingIndex = state.funds.findIndex(f => f.code === savedFund.code);
+                if (existingIndex >= 0) {
+                    // 更新现有基金的份额和成本
+                    state.funds[existingIndex].shares = savedFund.shares;
+                    state.funds[existingIndex].cost = savedFund.cost;
+                }
+                // 如果保存的基金不在默认列表中，也添加进来
+                else {
+                    state.funds.push(savedFund);
+                }
+            });
+        }
 
         // 工具函数
         function formatMoney(num) {
