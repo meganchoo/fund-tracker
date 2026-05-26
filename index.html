@@ -785,9 +785,6 @@
                     <thead>
                         <tr>
                             <th onclick="sortTable('name')" class="sortable">基金名称</th>
-                            <th onclick="sortTable('shares')" class="sortable">持有份额</th>
-                            <th onclick="sortTable('cost')" class="sortable">成本价</th>
-                            <th onclick="sortTable('netWorth')" class="sortable">当前净值</th>
                             <th onclick="sortTable('profit')" class="sortable">持有收益</th>
                             <th onclick="sortTable('profitRate')" class="sortable">收益率</th>
                             <th onclick="sortTable('value')" class="sortable">市值</th>
@@ -1280,9 +1277,6 @@
                                     <span class="fund-code">${fund.code}</span>
                                 </div>
                             </td>
-                            <td class="value-mono">${fund.shares.toFixed(2)}</td>
-                            <td class="value-mono">¥${fund.cost.toFixed(4)}</td>
-                            <td class="value-mono">¥${data.netWorth.toFixed(4)}</td>
                             <td class="${profit >= 0 ? 'profit-positive' : 'profit-negative'}">${formatMoney(profit)}</td>
                             <td class="${profitRate >= 0 ? 'profit-positive' : 'profit-negative'}">${formatPercent(profitRate)}</td>
                             <td class="value-mono">${formatMoney(value)}</td>
@@ -1298,7 +1292,7 @@
                                     <span class="fund-code">${fund.code}</span>
                                 </div>
                             </td>
-                            <td colspan="7" style="text-align: center; color: var(--text-muted);">加载中...</td>
+                            <td colspan="4" style="text-align: center; color: var(--text-muted);">加载中...</td>
                         </tr>
                     `;
                 }
