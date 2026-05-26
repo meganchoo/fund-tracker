@@ -939,6 +939,7 @@
                         <tr>
                             <th onclick="sortTable('name')" class="sortable">基金名称</th>
                             <th onclick="sortTable('todayProfit')" class="sortable">今日收益</th>
+                            <th onclick="sortTable('todayRate')" class="sortable">今日收益率</th>
                             <th onclick="sortTable('profit')" class="sortable">持有收益</th>
                             <th onclick="sortTable('profitRate')" class="sortable">收益率</th>
                             <th onclick="sortTable('value')" class="sortable">市值</th>
@@ -1389,7 +1390,7 @@
             document.querySelectorAll('th').forEach(th => {
                 th.classList.remove('sort-asc', 'sort-desc');
             });
-            const thIndex = ['name', 'todayProfit', 'profit', 'profitRate', 'value'].indexOf(column);
+            const thIndex = ['name', 'todayProfit', 'todayRate', 'profit', 'profitRate', 'value'].indexOf(column);
             if (thIndex >= 0) {
                 const th = document.querySelectorAll('thead th')[thIndex];
                 th.classList.add(sortState.direction === 'asc' ? 'sort-asc' : 'sort-desc');
@@ -1405,6 +1406,10 @@
                     case 'name':
                         valueA = a.name || a.code;
                         valueB = b.name || b.code;
+                        break;
+                    case 'todayRate':
+                        valueA = dataA ? ((dataA.todayWorth - dataA.netWorth) / dataA.netWorth) * 100 : 0;
+                        valueB = dataB ? ((dataB.todayWorth - dataB.netWorth) / dataB.netWorth) * 100 : 0;
                         break;
                     case 'shares':
                         valueA = a.shares;
@@ -1777,6 +1782,7 @@
                     const profit = (data.netWorth - fund.cost) * fund.shares;
                     const profitRate = ((data.netWorth - fund.cost) / fund.cost) * 100;
                     const todayProfit = (data.todayWorth - data.netWorth) * fund.shares;
+                    const todayRate = ((data.todayWorth - data.netWorth) / data.netWorth) * 100;
 
                     html += `
                         <tr>
@@ -1787,6 +1793,7 @@
                                 </div>
                             </td>
                             <td class="${todayProfit >= 0 ? 'profit-positive' : 'profit-negative'}">${formatMoney(todayProfit)}</td>
+                            <td class="${todayRate >= 0 ? 'profit-positive' : 'profit-negative'}">${formatPercent(todayRate)}</td>
                             <td class="${profit >= 0 ? 'profit-positive' : 'profit-negative'}">${formatMoney(profit)}</td>
                             <td class="${profitRate >= 0 ? 'profit-positive' : 'profit-negative'}">${formatPercent(profitRate)}</td>
                             <td class="value-mono">${formatMoney(value)}</td>
@@ -1802,7 +1809,7 @@
                                     <span class="fund-code">${fund.code}</span>
                                 </div>
                             </td>
-                            <td colspan="5" style="text-align: center; color: var(--text-muted);">加载中...</td>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted);">加载中...</td>
                         </tr>
                     `;
                 }
